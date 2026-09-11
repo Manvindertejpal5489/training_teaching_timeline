@@ -365,6 +365,19 @@
     .tab .sub { display: none; }
     .cards { grid-template-columns: 1fr; }
   }
+  /* 11.09.2026: phones and tablets (≤ 900px, drawer mode) — the tab strip scrolls inside its own box instead of widening the page: single-line tabs, no
+     scrollbar; the client sets data-more ("left" / "right") on the strip, which fades that edge, and a › hint pages the strip forward. Desktop rules untouched. */
+  .tabs-hint { display: none; }
+  @media (max-width: 900px) {
+    .topbar { position: relative; }
+    .tabs { flex: 0 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; margin-bottom: -1px; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { flex: none; white-space: nowrap; margin-bottom: 0; }
+    .tabs[data-more="right"] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent); }
+    .tabs[data-more="left"] { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); }
+    .tabs[data-more="left right"] { -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
+    .tabs[data-more~="right"] + .tabs-hint { display: flex; align-items: center; justify-content: flex-end; position: absolute; top: 0; right: 0; bottom: 1px; width: 32px; font-size: 20px; line-height: 1; color: var(--ink); cursor: pointer; user-select: none; -webkit-user-select: none; }
+  }
   /* side navigation: fixed rail (expanded 232px ⇄ collapsed 56px, remembered in localStorage 'rpt-nav'); off-canvas drawer ≤ 900px */
   :root { --navW: 232px; }
   :root[data-nav="collapsed"] { --navW: 56px; }
@@ -579,6 +592,7 @@
       <button class="tab" role="tab" type="button" id="tab-ugteach" aria-selected="false" tabindex="-1" aria-controls="panel-ugteach" title="Undergraduate teaching" aria-label="Undergraduate teaching">UG Teaching<span class="sub">Jul–Dec 2026</span></button>
       <button class="tab" role="tab" type="button" id="tab-pgteach" aria-selected="false" tabindex="-1" aria-controls="panel-pgteach" title="Postgraduate teaching" aria-label="Postgraduate teaching">PG Teaching<span class="sub">Jul–Nov 2026</span></button>
     </div>
+    <span class="tabs-hint" aria-hidden="true" title="More views">›</span>
   </div>
 
   <section id="panel-home" aria-label="Choose a timeline view">
@@ -1803,6 +1817,7 @@
   const TABS = ['cuha', 'crha', 'interns', 'nursing', 'ugteach', 'pgteach'];
   const tabEl = id => document.getElementById('tab-' + id);
   const panelEl = id => document.getElementById('panel-' + id);
+  const tabStrip = document.querySelector('.tabs');
   function activate(id) {
     TABS.forEach(t => {
       const on = t === id;
@@ -1813,6 +1828,7 @@
     panelEl('home').hidden = id !== 'home';
     document.querySelectorAll('[data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(id); });
     syncNav(id);
+    revealTab(id);
     tip.classList.remove('show');
     if (VIEWS[id]) revealToday(id);
     if (id === 'home' && window.SITES_MAP) requestAnimationFrame(() => window.SITES_MAP.refit());
@@ -1822,7 +1838,7 @@
   const route = () => activate(fromHash());
   const go = (id, focus) => { if (location.hash !== '#' + id) location.hash = id; else activate(id); if (focus) tabEl(id).focus(); };
   TABS.forEach(t => tabEl(t).addEventListener('click', () => go(t, false)));
-  document.querySelector('.tabs').addEventListener('keydown', e => {
+  tabStrip.addEventListener('keydown', e => {
     const i = TABS.indexOf(fromHash());
     if (i < 0) return;
     let j = null;
@@ -1833,6 +1849,24 @@
     if (j === null) return;
     e.preventDefault(); go(TABS[j], true);
   });
+  // tab strip ≤ 900px: it scrolls inside its own box; data-more ("left" / "right") fades that edge and shows the › hint, and the selected tab is kept in view
+  function markStripEdges() {
+    const max = tabStrip.scrollWidth - tabStrip.clientWidth, x = tabStrip.scrollLeft;
+    tabStrip.dataset.more = max > 1 ? [x > 1 ? 'left' : '', x < max - 1 ? 'right' : ''].filter(Boolean).join(' ') : '';
+  }
+  function revealTab(id) {
+    const t = tabEl(id);
+    if (t && tabStrip.scrollWidth - tabStrip.clientWidth > 1) {
+      const s = tabStrip.getBoundingClientRect(), r = t.getBoundingClientRect(), pad = 48;
+      if (r.left < s.left + pad) tabStrip.scrollLeft -= s.left + pad - r.left;
+      else if (r.right > s.right - pad) tabStrip.scrollLeft += r.right - s.right + pad;
+    }
+    markStripEdges();
+  }
+  tabStrip.addEventListener('scroll', markStripEdges, { passive: true });
+  window.addEventListener('resize', markStripEdges);
+  document.querySelector('.tabs-hint').addEventListener('click', () => tabStrip.scrollBy({ left: Math.round(tabStrip.clientWidth * 0.6), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
+  if (document.fonts) document.fonts.ready.then(() => revealTab(fromHash()));
   window.addEventListener('hashchange', route);
   route();
   window.addEventListener('load', () => { const id = fromHash(); if (VIEWS[id]) revealToday(id); });
