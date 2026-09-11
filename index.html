@@ -449,6 +449,13 @@
     .tseries .rwrap { overflow-x: visible; }
     .tseries table.tsched thead th { position: sticky; top: var(--tocH, 46px); z-index: 2; background: var(--surface); box-shadow: 0 1px 0 var(--grid); }
   }
+  /* 11.09.2026 (later): a series table wider than its column (the nursing micro plans always; a teaching table on a narrow screen) scrolls in its own box instead of
+     widening the page — the client marks its wrapper .scrolls. A header inside a scroll box cannot follow the page (sticky would only push it down over the
+     rows), so it stays put there and in the Group C day-wise table (.twrap). Screen only; print is untouched. */
+  @media screen and (min-width: 701px) {
+    .tseries .rwrap.scrolls { overflow-x: auto; }
+    .tseries .rwrap.scrolls table.tsched thead th, .tseries .twrap table.tsched thead th { position: static; }
+  }
   /* 06.09.2026: site locator (sites_v1) — inline SVG, to scale, dots in the views' colours */
   .sites { margin: 0 0 18px; }
   .sites-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(250px, 2fr); gap: 16px 18px; align-items: start; }
@@ -1829,6 +1836,7 @@
     document.querySelectorAll('[data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(id); });
     syncNav(id);
     revealTab(id);
+    if (SERIES_PANELS.includes(id)) fitSeriesTables(panelEl(id));
     tip.classList.remove('show');
     if (VIEWS[id]) revealToday(id);
     if (id === 'home' && window.SITES_MAP) requestAnimationFrame(() => window.SITES_MAP.refit());
@@ -1867,6 +1875,16 @@
   window.addEventListener('resize', markStripEdges);
   document.querySelector('.tabs-hint').addEventListener('click', () => tabStrip.scrollBy({ left: Math.round(tabStrip.clientWidth * 0.6), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }));
   if (document.fonts) document.fonts.ready.then(() => revealTab(fromHash()));
+  // series tables ≥ 701px: one that fits its column keeps a non-clipping wrapper so its header can stick to the page; one wider than its column scrolls in
+  // its own box (.scrolls) — measured when its view is shown (activate) and on load, and again whenever a panel with series tables changes size
+  // (rendered, window resized, rail toggled, filter applied) or the web fonts arrive
+  const SERIES_PANELS = ['nursing', 'ugteach', 'pgteach'];
+  function fitSeriesTables(root) {
+    root.querySelectorAll('.tseries .rwrap').forEach(w => { const t = w.querySelector('table'); if (t && w.clientWidth) w.classList.toggle('scrolls', t.offsetWidth > w.clientWidth + 1); });
+  }
+  if (window.ResizeObserver) { const fitRO = new ResizeObserver(es => es.forEach(e => fitSeriesTables(e.target))); SERIES_PANELS.forEach(id => fitRO.observe(panelEl(id))); }
+  if (document.fonts) document.fonts.ready.then(() => SERIES_PANELS.forEach(id => fitSeriesTables(panelEl(id))));
+  window.addEventListener('load', () => { const id = fromHash(); if (SERIES_PANELS.includes(id)) fitSeriesTables(panelEl(id)); });
   window.addEventListener('hashchange', route);
   route();
   window.addEventListener('load', () => { const id = fromHash(); if (VIEWS[id]) revealToday(id); });
