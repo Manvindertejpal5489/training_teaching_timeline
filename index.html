@@ -1647,6 +1647,7 @@
     const row = document.createElement('div'); row.className = 'crow r';
     const nc = document.createElement('div');
     nc.className = 'name-cell' + (r.tbd ? ' tbd' : '');
+    nc.dataset.resident = r.name;
     nc.innerHTML = r.sub ? '<span class="nwrap">' + r.name + (r.tbd || !r.role ? '' : '<span class="role">(' + r.role + ')</span>') + '<small class="nsub">' + escH(r.sub) + '</small></span>' : r.name + (r.tbd || !r.role ? '' : '<span class="role">(' + r.role + ')</span>');
     if (r.tip) { nc.classList.add('has-tip'); Object.assign(nc.dataset, { name: r.name, role: r.role || '', tipText: r.tip }); wireNameTip(nc); }
     const lane = document.createElement('div'); lane.className = 'lane';
@@ -1662,7 +1663,7 @@
   if (view.cgr && CGR) {
     const winFrom = view.epochUTC, winTo = view.epochUTC + (N - 1) * 86400000;
     const rowsByName = {};
-    canvas.querySelectorAll('.crow.r').forEach(row => { const nm = row.querySelector('.name-cell'); if (nm) rowsByName[nm.firstChild.textContent.trim()] = row.querySelector('.lane'); });
+    canvas.querySelectorAll('.crow.r').forEach(row => { const nm = row.querySelector('.name-cell'); if (nm) rowsByName[nm.dataset.resident || nm.firstChild.textContent.trim()] = row.querySelector('.lane'); });
     CGR.sessions.forEach(x => {
       if (x.utc < winFrom || x.utc > winTo) return;
       const idx = Math.round((x.utc - winFrom) / 86400000);
