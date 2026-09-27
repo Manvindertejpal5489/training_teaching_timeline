@@ -310,6 +310,17 @@
   table.tsched tr.current td { background: var(--band); }
   .cgr-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 1.5px var(--surface); flex: none; }
   .cgrm { position: absolute; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 1.5px var(--surface); z-index: 3; cursor: help; }
+  /* 27.09.2026: attendance-marker crosses, fed live by the attendance app (cfm-attendance) public marks feed */
+  .attx { position: absolute; top: 37px; width: 11px; height: 11px; z-index: 4; cursor: help; filter: drop-shadow(0 0 1px var(--surface)) drop-shadow(0 0 1px var(--surface)); }
+  .attx-sw { position: relative; display: inline-block; width: 11px; height: 11px; flex: none; vertical-align: -1px; }
+  .attx::before, .attx::after, .attx-sw::before, .attx-sw::after { content: ''; position: absolute; left: -1.5px; top: 4px; width: 14px; height: 3px; border-radius: 1px; background: var(--xc, var(--ink)); transform: rotate(45deg); }
+  .attx::after, .attx-sw::after { transform: rotate(-45deg); }
+  .attx.unc::before, .attx.unc::after, .attx-sw.unc::before, .attx-sw.unc::after { background: repeating-linear-gradient(90deg, var(--xc, var(--ink)) 0 3px, transparent 3px 5px); }
+  .attx:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .key.attx-key { gap: 6px; }
+  .attx-status { color: var(--muted); }
+  .hd-chip.attx-chip { display: inline-flex; align-items: center; gap: 6px; white-space: normal; }
+  .hd-chip.attx-chip i { font-style: normal; color: var(--muted); font-size: 11px; }
   .hd-chip.cgr { border-color: var(--ink); font-weight: 500; display: inline-block; white-space: normal; line-height: 1.7; }   /* 07.09.2026: flows as text when the row is narrow */
   .hd-chip.cgr .cgr-dot { vertical-align: middle; margin-right: 6px; }
   .hd-chip.cgr b { font-weight: 600; }
@@ -1507,6 +1518,79 @@
     }
   }
 
+  // ---------------- attendance-marker crosses (27.09.2026) ----------------
+  // The attendance app's server publishes only date · centre · marker name · how many were marked · location check
+  // (GET <apiUrl>?feed=marks, apiUrl read from the attendance site's own config.js). No students, no P/A/L, no e-mails.
+  // A cross sits on the marker's lane on the SESSION date, in the centre's colour: solid = marked from the centre
+  // (location confirmed), dashed = location not confirmed / not recorded. Even one person marked gives a cross.
+  const ATTX = { targets: [], marks: null, updated: '', state: 'loading' };
+  const ATTX_ALIAS = { 'Dr Kiranmai Pandi': 'Dr Kiranmayi', 'Dr Sudeepa Libny Yeluri': 'Dr Libny', 'Dr Manvinder Tejpal': 'Dr Manvinder', 'Dr Sahil Kumar': 'Dr Sahil', 'Dr Sahil Khurana': '' };
+  const attxLane = n => Object.prototype.hasOwnProperty.call(ATTX_ALIAS, n) ? ATTX_ALIAS[n] : 'Dr ' + String(n).replace(/^Dr\.?\s*/, '').split(/\s+/)[0].replace(/[.,]+$/, '');
+  const attxVarCache = {};
+  function attxVar(k) {
+    if (attxVarCache[k]) return attxVarCache[k];
+    const c = [k, /^pr-2022/.test(k) ? 'fm9' : /^pr-2024/.test(k) ? 'cl5' : /^pr-/.test(k) ? 'cl3' : /^th-/.test(k) ? 'teach' : 'field', 'field'];
+    const cs = getComputedStyle(document.documentElement);
+    const hit = c.find(x => /^[a-z0-9-]+$/.test(x) && cs.getPropertyValue('--c-' + x).trim());
+    return (attxVarCache[k] = 'var(--c-' + (hit || 'field') + ')');
+  }
+  const attxWhere = m => m.at === 1 ? 'marked from the centre (location confirmed)' : m.at === 0 ? 'location recorded, not confirmed at the centre' : 'no location recorded';
+  const attxDate = iso => { const t = parseIso(iso); return t === null ? iso : shortDate(t); };
+  function attxStatus() {
+    if (ATTX.state === 'error') return ' · attendance feed unavailable right now';
+    if (!ATTX.marks) return ' · loading…';
+    const g = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/.exec(ATTX.updated || '');
+    return g ? ' · updated ' + g[3] + '.' + g[2] + '.' + g[1] + ' ' + g[4] + (ATTX.state === 'cached' ? ' (refreshing…)' : ATTX.state === 'stale' ? ' (could not refresh)' : '') : '';
+  }
+  function paintAttx() {
+    ATTX.targets.forEach(t => {
+      t.canvas.querySelectorAll('.attx').forEach(el => el.remove());
+      t.root.querySelectorAll('.attx-status').forEach(el => { el.textContent = attxStatus(); });
+      if (!ATTX.marks) return;
+      const winTo = t.winFrom + (t.N - 1) * DAY, perCell = {};
+      ATTX.marks.forEach(m => {
+        const utc = parseIso(m.d); if (utc === null || utc < t.winFrom || utc > winTo) return;
+        const ln = attxLane(m.n), lane = ln && t.rows[ln]; if (!lane) return;
+        const idx = Math.round((utc - t.winFrom) / DAY), key = ln + '|' + idx, k = (perCell[key] = (perCell[key] || 0) + 1);
+        const el = document.createElement('div');
+        el.className = 'attx' + (m.at === 1 ? '' : ' unc');
+        el.style.setProperty('--xc', attxVar(m.k));
+        el.style.left = 'calc(' + t.pct(idx + 0.5) + ' - 5.5px + ' + ((k - 1) * 8) + 'px)';
+        const txt = attxDate(m.d) + ' · ' + m.site + ' — marked attendance of ' + m.c + (m.c === 1 ? ' person' : ' people') + ' · ' + attxWhere(m) + '.';
+        el.setAttribute('role', 'img'); el.setAttribute('aria-label', m.n + ': ' + txt);
+        Object.assign(el.dataset, { name: m.n + ' · attendance marked', role: '', tipText: txt });
+        wireNameTip(el);
+        lane.appendChild(el);
+      });
+    });
+    Object.keys(VIEWS).forEach(id => { const v = VIEWS[id]; if (v.home || (v.view && v.view.cgr)) renderToday(id); });
+  }
+  function attxHtml(utc, id) {
+    const head = '<div class="today-health today-attx"><span class="today-kicker">Attendance marked · attendance app<span class="attx-status">' + attxStatus() + '</span></span><div class="hd-list">';
+    if (!ATTX.marks) return head + '<span class="hd-none">' + (ATTX.state === 'error' ? 'could not reach the attendance app' : 'loading…') + '</span></div></div>';
+    const iso = isoOf(utc);
+    let list = ATTX.marks.filter(m => m.d === iso);
+    if (id !== 'home' && VIEWS[id]) { const names = new Set(VIEWS[id].data.residents.map(r => r.name)); list = list.filter(m => names.has(attxLane(m.n))); }
+    let body = list.map(m => '<span class="hd-chip attx-chip" title="' + escapeAttr(attxWhere(m)) + '"><span class="attx-sw' + (m.at === 1 ? '' : ' unc') + '" style="--xc:' + attxVar(m.k) + '"></span><span><b>' + escH(m.site) + '</b> · ' + escH(m.n) + ' <i>' + m.c + ' marked · ' + (m.at === 1 ? 'at centre' : m.at === 0 ? 'location not confirmed' : 'no location') + '</i></span></span>').join('');
+    if (!body) body = '<span class="hd-none">no attendance marked for this date' + (utc >= todayUTC() ? ' yet' : '') + '</span>';
+    return head + body + '</div></div>';
+  }
+  function loadAttx() {
+    try { const c = JSON.parse(localStorage.getItem('attx-cache') || 'null'); if (c && Array.isArray(c.marks)) { ATTX.marks = c.marks; ATTX.updated = c.generated; ATTX.state = 'cached'; } } catch (e) { /* storage blocked */ }
+    paintAttx();
+    fetch('/cfm-attendance/config.js', { cache: 'no-cache' }).then(r => r.text())
+      .then(cfg => { const u = (/apiUrl:\s*'([^']+)'/.exec(cfg) || [])[1]; if (!u) throw new Error('no apiUrl'); return fetch(u + '?feed=marks'); })
+      .then(r => r.json())
+      .then(j => {
+        if (!j || !j.ok || !Array.isArray(j.marks)) throw new Error('bad feed');
+        ATTX.marks = j.marks; ATTX.updated = j.generated; ATTX.state = 'live';
+        try { localStorage.setItem('attx-cache', JSON.stringify({ marks: j.marks, generated: j.generated })); } catch (e) { /* storage blocked */ }
+      })
+      .catch(() => { ATTX.state = ATTX.state === 'cached' ? 'stale' : 'error'; })
+      .then(paintAttx);
+  }
+  document.addEventListener('DOMContentLoaded', loadAttx);
+
   function renderRoster(data, view, root) {
   const N = data.N;
   const CAT = view.cat;
@@ -1530,7 +1614,8 @@
         + '<span class="key"><span class="sw sun-sw"></span><b>Sunday</b>&nbsp;· ' + (item.text || 'start of each Sun–Sat outreach week — all centres still run') + '</span>'
         + (HEALTH ? '<span class="key hd"><span class="hd-dot"></span><b>Health day</b>&nbsp;· ' + HEALTH.year + ' health-days calendar (name and dates)</span>' : '')
         + (FAP ? '<span class="key hd fap"><span class="hd-dot fap"></span><b>FAP day</b>&nbsp;· Family Adoption Programme (1st Sem 1st Saturdays · 3rd Sem 2nd Saturdays · 5th Sem 4th Saturdays)</span>' : '')
-        + (view.cgr && CGR ? '<span class="key cgr"><span class="cgr-dot"></span><b>CGR/CCR</b>&nbsp;· Clinical Grand Round / Clinical Case Review — nominated for the Saturday 08:00–09:00 session — overlaps the day\'s posting</span>' : '');
+        + (view.cgr && CGR ? '<span class="key cgr"><span class="cgr-dot"></span><b>CGR/CCR</b>&nbsp;· Clinical Grand Round / Clinical Case Review — nominated for the Saturday 08:00–09:00 session — overlaps the day\'s posting</span>' : '')
+        + (view.cgr ? '<span class="key attx-key"><span class="attx-sw"></span><span><b>Attendance marked</b>&nbsp;· cross on the session date, in the centre\'s colour — solid = marked from the centre (location confirmed) · dashed = location not confirmed<span class="attx-status"></span></span></span>' : '');
       legend.appendChild(g);
     } else legendGroup(item.title, item.keys, item.duty);
   });
@@ -1696,6 +1781,12 @@
     });
   }
 
+  if (view.cgr) {
+    const rows = {};
+    canvas.querySelectorAll('.crow.r').forEach(row => { const nm = row.querySelector('.name-cell'); if (nm && nm.dataset.resident) rows[nm.dataset.resident] = row.querySelector('.lane'); });
+    ATTX.targets.push({ root, canvas, pct, N, winFrom: view.epochUTC, rows });
+  }
+
   // ---------------- table view ----------------
   const tbl = root.querySelector('details.tableview table.detail');
   let html = '<thead><tr><th>Resident</th><th>Posting / duty</th><th>Dates</th><th>Notes</th></tr></thead><tbody>';
@@ -1792,7 +1883,7 @@
     if (!box) return;
     let h;
     if (v.home) {
-      h = headHtml(v, CURRENT, null, 'Current') + healthHtml(CURRENT) + (CGR ? cgrHtml(CURRENT, null) : '');
+      h = headHtml(v, CURRENT, null, 'Current') + healthHtml(CURRENT) + (CGR ? cgrHtml(CURRENT, null) : '') + attxHtml(CURRENT, 'home');
       markHealthRows();
     } else if (v.teaching) {
       h = headHtml(v, CURRENT, null, 'Current') + healthHtml(CURRENT) + teachingTodayHtml(v);
@@ -1830,7 +1921,7 @@
     } else {
       const d = detailFor(v, CURRENT);
       if (id === 'interns') withIpcNursing(v, d);
-      h = headHtml(v, CURRENT, d, 'Current') + healthHtml(CURRENT) + (id === 'crha' ? crhaHdHtml(CURRENT) : '') + (v.view.cgr ? cgrHtml(CURRENT, id.toUpperCase()) : '') + rowsHtml(v, d, v.noun || 'residents');
+      h = headHtml(v, CURRENT, d, 'Current') + healthHtml(CURRENT) + (id === 'crha' ? crhaHdHtml(CURRENT) : '') + (v.view.cgr ? cgrHtml(CURRENT, id.toUpperCase()) + attxHtml(CURRENT, id) : '') + rowsHtml(v, d, v.noun || 'residents');
     }
     box.innerHTML = h;
     box.querySelectorAll('.has-tip').forEach(wireNameTip);
