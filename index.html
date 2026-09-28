@@ -595,6 +595,11 @@
   .msc .bar[data-cat="umr"], .msc .bar[data-cat="units"] { opacity: 0.55; }
   .today-names .who.flag { flex-basis: 100%; font-size: 12px; }
   @media print { .nweek .rwrap, .msc .rwrap { break-inside: auto; } table.nweek-t tr { break-inside: avoid; } details.nmsc-p2 > .rwrap { display: block; } }
+  /* 28.09.2026: contents strips on the Nursing and Interns views (static; same look as the teaching views') */
+  #panel-nursing [id^="nt-"], #panel-interns [id^="it-"], #panel-interns > .legend, #panel-interns > details.tableview { scroll-margin-top: calc(var(--tocH, 46px) + 12px); }
+  @media (max-width: 900px) { .vtoc { padding-left: 44px; } }
+  @media (max-width: 700px) { .vtoc { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent); } .vtoc::-webkit-scrollbar { display: none; } .vtoc .toc-link, .vtoc .toc-lab { flex: none; white-space: nowrap; } .vtoc .toc-fill { display: none; } }
+  @media (max-width: 640px) { .vtoc { padding-left: 52px; } }
 </style>
 </head>
 <body>
@@ -805,6 +810,7 @@
   </section>
 
   <section id="panel-interns" role="tabpanel" aria-labelledby="tab-interns" tabindex="0" hidden>
+  <nav class="toc vtoc" aria-label="Contents of the Interns view"><span class="toc-lab">Contents</span><button type="button" class="toc-link" data-jump="chart" title="The posting chart">Timeline</button><button type="button" class="toc-link" data-jump="it-groups" title="Rotation groups and blocks, as on the signed roster">Rotation groups &amp; blocks</button><button type="button" class="toc-link" data-jump="it-rural" title="Chiklod and Goharganj periods">CRHA rural rotation</button><button type="button" class="toc-link" data-jump="tableview" title="Full posting table (text view)">Text table</button><button type="button" class="toc-link" data-jump="it-notes" title="Notes and sources">Notes</button><span class="toc-fill"></span><button type="button" class="toc-link top" data-jump="top">Top ↑</button></nav>
   <section class="today" data-view="interns" aria-live="polite"></section>
   <div class="legend"></div>
 
@@ -814,7 +820,7 @@
     </div>
   </div>
 
-  <h2 class="section-title flow">Rotation groups and blocks — as on the signed roster (29.06.2026)</h2>
+  <h2 class="section-title flow" id="it-groups">Rotation groups and blocks — as on the signed roster (29.06.2026)</h2>
   <div class="rwrap">
     <table class="detail groups"><thead><tr><th>Rotation group</th><th>Blocks (4 weeks each)</th><th>Rotation orders (interns)</th><th>Interns</th></tr></thead><tbody>
       <tr><td class="res">Group 1</td><td class="dates">Block 1 · 01 Jul – 28 Jul 2026<br>Block 2 · 29 Jul – 25 Aug 2026<br>Block 3 · 26 Aug – 22 Sep 2026</td><td>CRHA → IPC → CUHA <span class="role">(7)</span><br>CUHA → CRHA → IPC <span class="role">(7)</span><br>IPC → CUHA → CRHA <span class="role">(8)</span></td><td class="dates">22</td></tr>
@@ -842,7 +848,7 @@
       <tr><td class="res">Block 13</td><td class="dates">02 Jun – 23 Jun 2027</td><td class="dates">13 Jun 2027</td><td class="dates">7</td><td class="dates">5</td></tr>
     </tbody></table>
   </div>
-  <h2 class="section-title flow">CRHA rural rotation — Chiklod and Goharganj, effective 14.09.2026</h2>
+  <h2 class="section-title flow" id="it-rural">CRHA rural rotation — Chiklod and Goharganj, effective 14.09.2026</h2>
   <div class="rwrap">
     <table class="detail groups"><thead><tr><th>Rotation block</th><th>Dates</th><th>Interns at CRHA</th><th>Rural periods</th><th>At CHC Goharganj (the rest at RHC Chiklod)</th></tr></thead><tbody>
       <tr><td class="res">Block 3</td><td class="dates">26 Aug – 22 Sep 2026</td><td class="dates">15</td><td class="dates">P1 · 26 Aug – 04 Sep 2026 <span class="role">(before the split)</span><br>P2 · 05 Sep – 13 Sep 2026 <span class="role">(before the split)</span><br>P3 · 14 Sep – 22 Sep 2026</td><td><span class="role">—</span><br><span class="role">—</span><br>5 <span class="role">(Savio Bastin Jojo, Taha Jiruwala, Tarang Tadhani, Vishwajeet Kalbande, Viswa Kantamneni)</span></td></tr>
@@ -864,7 +870,7 @@
     <div class="twrap"><table class="detail"></table></div>
   </details>
 
-  <h2 class="section-title">Notes</h2>
+  <h2 class="section-title" id="it-notes">Notes</h2>
   <ol class="notes">
     <li>Each intern's <b>12-week posting with the department</b> is charted: three consecutive <b>4-week rotation blocks</b> — CUHA, CRHA and IPC in one of three orders — per the signed Intern 2021 Batch roster (July 2026 – June 2027). The rest of the internship year is with other departments and is left blank. Lanes are grouped by the six staggered rotation groups; every group's three blocks overlap the next group's first block.</li>
     <li>The <b>CUHA block</b> is split into two fortnights per the monthly CUHA intern roster: one at <b>UPHC Sai Baba Nagar</b> and one at the <b>Sanjeevani Clinic, Berkheda Pathani</b> ("Barkhera" on the roster) — the alphabetical first half of each block's CUHA cohort starts at Sai Baba, the second half at Barkhera, and both centres stay staffed throughout. The swap falls on day 15 of a block (19 May for Block 12; 13 Jun for the three-week Block 13).</li>
@@ -880,9 +886,10 @@
   </section>
 
   <section id="panel-nursing" role="tabpanel" aria-labelledby="tab-nursing" tabindex="0" hidden>
+  <nav class="toc vtoc" aria-label="Contents of the Nursing view"><span class="toc-lab">Contents</span><button type="button" class="toc-link" data-jump="nt-week" title="Which nursing students each site should expect, week by week">Week by week</button><button type="button" class="toc-link" data-jump="nt-camp" title="Outreach camp posting calendar">Outreach camp</button><button type="button" class="toc-link" data-jump="nt-chn2" title="Community Health Nursing II — 4th Year B.Sc (Hons) Nursing">CHN-II</button><button type="button" class="toc-link" data-jump="nt-school" title="School health programmes">School health</button><button type="button" class="toc-link" data-jump="nt-micro2" title="Community Health Nursing II station micro plan">CHN-II micro plan</button><button type="button" class="toc-link" data-jump="nt-chn1" title="Community Health Nursing I — B.Sc (Hons) Nursing III Year">CHN-I</button><button type="button" class="toc-link" data-jump="nt-visits" title="Observation visits of the CHN-I groups">Observation visits</button><button type="button" class="toc-link" data-jump="nt-micro1" title="Community Health Nursing I station micro plan">CHN-I micro plan</button><button type="button" class="toc-link" data-jump="nt-msc" title="M.Sc Nursing community health postings">M.Sc</button><button type="button" class="toc-link" data-jump="nt-notes" title="Notes and sources">Notes</button><span class="toc-fill"></span><button type="button" class="toc-link top" data-jump="top">Top ↑</button></nav>
   <section class="today" data-view="nursing" aria-live="polite"></section>
 
-  <section class="tseries nweek" style="--tocH: 0px">
+  <section class="tseries nweek" id="nt-week">
   <h2 class="subhead">Week by week at the department's sites · nursing students · 31 August 2026 – 26 June 2027</h2>
   <p class="sublede">Who each site should expect, Monday to Saturday, every batch in one table: the B.Sc (Hons) Nursing 4th Year (CHN-II) and III Year (CHN-I) groups counted per site per day from their station micro plans; the M.Sc Nursing 1st Year's station of the week; the M.Sc Nursing 2nd Year with the B.Sc (Hons) bus of the day; observation visits and school health. Hospital units are left out. The current week is highlighted and past weeks are dimmed; ⚠ marks the observation-visit mornings that clash with the urban posting.</p>
   <div class="rwrap"><table class="detail tsched nweek-t">
@@ -926,12 +933,12 @@
       <tr data-from="2027-06-21" data-to="2027-06-26"><td class="dates">21–26 Jun 2027</td><td><span class="nw-0">—</span></td><td><span class="nw-0">—</span></td><td><span class="nw-0">—</span></td><td><span class="nw-0">—</span></td><td><span class="nw-0">—</span></td><td><span class="nw-e ev" title="M.Sc Nursing 1st Year (2026 batch) · Community Health Nursing, Clinical Specialty I"><b>M.Sc I</b> <span class="nw-d">Mon–Sat · 3 a day</span><span class="nw-w">Week 25 · observation visits (with M.Sc II)</span></span><span class="nw-e ev" title="M.Sc Nursing 2nd Year (2025 batch) · Community Health Nursing, Clinical Specialty II"><b>M.Sc II</b> <span class="nw-d">Mon–Sat · 4 a day</span><span class="nw-w">observation visits (with M.Sc I) and the Health and Wellness Centre</span></span></td></tr>
     </tbody></table></div>
   </section>
-  <h2 class="subhead">Outreach camp posting · 31 August – 11 December 2026</h2>
+  <h2 class="subhead" id="nt-camp">Outreach camp posting · 31 August – 11 December 2026</h2>
   <p class="sublede">M.Sc Nursing and B.Sc (Hons) Nursing students, one per day on the outreach mobile van — Nursing College roster (revised, 29.08.2026).</p>
   <div class="legend cal-legend"><div class="legend-group"><span class="legend-title">Batch</span><span class="key"><span class="sw" style="--fill:var(--c-ipc)"></span><b>B.Sc 2023 · G1</b>&nbsp;· B.Sc (Hons) Nursing 2023 Batch · Group 1</span><span class="key"><span class="sw" style="--fill:var(--c-sai)"></span><b>B.Sc 2023 · G2</b>&nbsp;· B.Sc (Hons) Nursing 2023 Batch · Group 2</span><span class="key"><span class="sw" style="--fill:var(--c-bar)"></span><b>B.Sc 2023 · G3</b>&nbsp;· B.Sc (Hons) Nursing 2023 Batch · Group 3</span><span class="key"><span class="sw" style="--fill:var(--c-nhm)"></span><b>M.Sc 2026</b>&nbsp;· M.Sc Nursing 2026 Batch</span><span class="key"><span class="sw" style="--fill:var(--c-cl5)"></span><b>M.Sc 2025</b>&nbsp;· M.Sc Nursing 2025 Batch</span><span class="key"><span class="sw" style="--fill:var(--band)"></span><b>Blank</b>&nbsp;· date not on the roster (Sundays, holidays)</span></div></div>
   <div class="cal" role="table" aria-label="Outreach camp posting calendar, one nursing student per date, 31 August to 11 December 2026"></div>
 
-  <h2 class="subhead">Community Health Nursing II (CHN-II) community posting · 4th Year B.Sc (Hons) Nursing · 31 August – 10 December 2026</h2>
+  <h2 class="subhead" id="nt-chn2">Community Health Nursing II (CHN-II) community posting · 4th Year B.Sc (Hons) Nursing · 31 August – 10 December 2026</h2>
   <p class="sublede">Three groups in turn, 27 posting days each in five blocks: Berkheda Patani, Saibabanagar / 1100 quarters / Shahpura, Chiklod, Goharganj, Umraoganj — Nursing College circular of 26.06.2026. Stations run by the department (Barkhera Patani, Sai Baba Nagar, Chiklod, Goharganj, and the Immunization station at the IPC) are shown in full; the hospital units and the Umraoganj block are muted.</p>
   <div class="chn2">
   <div class="legend"></div>
@@ -947,7 +954,7 @@
       <tr><td class="res">Group III</td><td class="dates">09 Nov – 10 Dec 2026</td><td class="dates">6 + 6 + 6 + 6 + 3</td><td class="dates">24 students</td></tr>
     </tbody></table>
   </div>
-  <h2 class="section-title flow">School health programmes — 4th Year B.Sc (Hons) Nursing (Batch 2023) · Government Primary School (Shaskiya Prathmik Shala), Chavni, Shahpura</h2>
+  <h2 class="section-title flow" id="nt-school">School health programmes — 4th Year B.Sc (Hons) Nursing (Batch 2023) · Government Primary School (Shaskiya Prathmik Shala), Chavni, Shahpura</h2>
   <div class="rwrap">
     <table class="detail tsched nsch"><thead><tr><th>Date</th><th>Topic</th><th>Time</th><th>Organised by</th><th>CHN-II group on posting that day</th></tr></thead><tbody>
       <tr data-date="2026-09-12"><td class="dates">Sat 12 Sep 2026</td><td><b>First Aid</b><span class="sub">basic first aid and immediate management of common injuries and emergencies</span></td><td class="dates">11.40 am – 12.20 pm<span class="sub">classes 1–5</span></td><td>Ritika Kumari, Ranju Malav, Rekha Choudhary, Mamta Bairwa, Lokesh<span class="sub">4th Year B.Sc (Hons), CHN-II Group II</span></td><td>Group 1 · Day 11<span class="sub">Saibabanagar / 1100 qtrs / Shahpura block</span></td></tr>
@@ -983,7 +990,7 @@
       <tr><td><span class="has-tip" data-name="Ku Kajal" data-role="" data-tip-text="Group 1 · Sr. No. 24">Ku Kajal</span></td><td><span class="has-tip" data-name="Ritika Kumari" data-role="" data-tip-text="Group II · Sr. No. 24">Ritika Kumari</span></td><td><span class="has-tip" data-name="Chanchal Nayak" data-role="" data-tip-text="Group III · Sr. No. 24">Chanchal Nayak</span></td></tr>
     </tbody></table>
   </div>
-  <h2 class="section-title flow">Community Health Nursing II (CHN-II) station micro plan — as circulated (names; hover a cell for the printed serial numbers)</h2>
+  <h2 class="section-title flow" id="nt-micro2">Community Health Nursing II (CHN-II) station micro plan — as circulated (names; hover a cell for the printed serial numbers)</h2>
   <div class="microplan2"></div>
   <details class="tableview">
     <summary>Full CHN-II posting table (text view)</summary>
@@ -991,7 +998,7 @@
   </details>
   </div>
 
-  <h2 class="subhead">Community Health Nursing I (CHN-I) community posting · B.Sc (Hons) Nursing III Year · 14 December 2026 – 5 March 2027</h2>
+  <h2 class="subhead" id="nt-chn1">Community Health Nursing I (CHN-I) community posting · B.Sc (Hons) Nursing III Year · 14 December 2026 – 5 March 2027</h2>
   <p class="sublede">Three groups in turn: field visits, urban field posting (Berkheda Patani + Saibaba Nagar + 1100 quarters), then rural posting at Chiklod — Nursing College circular of 17.08.2026. Stations run by the department are shown in full; the hospital units (DOTS, ICTC, ART, ATF) are muted.</p>
   <div class="chn">
   <div class="legend"></div>
@@ -1007,7 +1014,7 @@
       <tr><td class="res">Group III</td><td class="dates">08 Feb – 05 Mar 2027</td><td class="dates">2 + 8 + 10</td><td class="dates">27 students</td></tr>
     </tbody></table>
   </div>
-  <h2 class="section-title flow">Observation visits — three days for each group, as requested by the Nursing College (off site)</h2>
+  <h2 class="section-title flow" id="nt-visits">Observation visits — three days for each group, as requested by the Nursing College (off site)</h2>
   <div class="rwrap">
     <table class="detail tsched nvis"><thead><tr><th>Date</th><th>Group</th><th>Visits</th><th>With</th><th>Note</th></tr></thead><tbody>
       <tr data-date="2026-12-14"><td class="dates">Mon 14 Dec 2026<span class="sub">Day 1 of 3</span></td><td class="res">Group I<span class="sub">28 students</span></td><td>Water treatment plant, Jail Hill <i>10–11 am</i><span class="sub">rapid sand filtration and water-quality testing; safe drinking-water supply</span>Sanchi Dairy Plant (near Habibganj railway station) <i>11.30 am – 1 pm</i><span class="sub">safe milk supply; pasteurisation and the tests of its efficiency</span></td><td>M.Sc Nursing 1st Year</td><td class="note">a visit day of the CHN-I circular</td></tr>
@@ -1054,7 +1061,7 @@
       <tr><td><span class="has-tip" data-name="Kalpana Sinwar" data-role="" data-tip-text="Group I · Sr. No. 28">Kalpana Sinwar</span></td><td></td><td></td></tr>
     </tbody></table>
   </div>
-  <h2 class="section-title flow">Station micro plan — as circulated (names; hover a cell for the printed serial numbers)</h2>
+  <h2 class="section-title flow" id="nt-micro1">Station micro plan — as circulated (names; hover a cell for the printed serial numbers)</h2>
   <div class="microplan"></div>
   <details class="tableview">
     <summary>Full posting table (text view)</summary>
@@ -1063,7 +1070,7 @@
   </div>
 
 
-  <h2 class="subhead">M.Sc Nursing community health postings · 1st Year (2026 batch) and 2nd Year (2025 batch) · 5 October 2026 – 3 July 2027</h2>
+  <h2 class="subhead" id="nt-msc">M.Sc Nursing community health postings · 1st Year (2026 batch) and 2nd Year (2025 batch) · 5 October 2026 – 3 July 2027</h2>
   <p class="sublede">Nursing College orders prepared 29.08.2026 (dispatched 01.09.2026). The 1st Year have a weekly station for three students and one student at the hospital units; the 2nd Year's "health centre" follows the bus route of the B.Sc (Hons) students' posting, so each of their days is coloured by where the B.Sc (Hons) group is posted that day (derived). Stations run by the department are shown in full; Umraoganj and the hospital units are muted.</p>
   <div class="msc">
   <div class="legend"></div>
@@ -1072,7 +1079,7 @@
       <div class="canvas" role="figure" aria-label="Gantt chart of the M.Sc Nursing 1st and 2nd Year community health postings, 5 October 2026 to 3 July 2027"></div>
     </div>
   </div>
-  <section class="tseries" style="--tocH: 0px">
+  <section class="tseries">
   <h2 class="section-title flow">M.Sc Nursing 1st Year (2026 batch) · Community Health Nursing — Clinical Specialty I — Part I weekly postings, as circulated</h2>
   <div class="rwrap">
     <table class="detail tsched nmsc"><thead><tr><th>Week</th><th>Dates</th><th>Peripheral posting<small>3 students</small></th><th>Hospital units<small>one student, rotating every four weeks</small></th></tr></thead><tbody>
@@ -1113,7 +1120,7 @@
   </div>
   </details>
   </section>
-  <section class="tseries" style="--tocH: 0px">
+  <section class="tseries">
   <h2 class="section-title flow">M.Sc Nursing 2nd Year (2025 batch) · Community Health Nursing — Clinical Specialty II — weekly postings, as circulated</h2>
   <div class="rwrap">
     <table class="detail tsched nmsc nmsc2"><thead><tr><th>Dates</th><th>Amisha Dey</th><th>Tamanna</th><th>Mamta</th><th>Shibani</th><th>Where the B.Sc (Hons) bus goes<small>derived, day by day — the order's “health centre”</small></th></tr></thead><tbody>
@@ -1152,7 +1159,7 @@
   </details>
   </div>
 
-  <h2 class="section-title">Notes</h2>
+  <h2 class="section-title" id="nt-notes">Notes</h2>
   <ol class="notes">
     <li><b>Outreach camp posting</b> (31 Aug – 11 Dec 2026): one nursing student joins the outreach mobile van each listed day, reporting to the CFM resident on outreach at 9.15 am at the van's location. The calendar names the student per date; a coloured dot marks the batch. "No student posted" reproduces the dashes in the roster; blank dates (Sundays, holidays) are not on the roster. 7 Nov is held for any M.Sc student joining through open counselling.</li>
     <li><b>CHN-I community posting</b> (B.Sc (Hons) Nursing III Year, Batch 2024): three groups in turn, each starting with two field-visit days (Sanchi dairy plant &amp; water purification plant; India waste management), then the <b>urban field posting</b> at Berkheda Patani, Saibaba Nagar and the 1100 quarters, then the <b>rural posting at Chiklod</b>. Bars show the posting days exactly as listed in the circular (gaps are Sundays and holidays); 9 am – 5 pm, field posting 9.30 am – 1 pm, afternoon in the lab.</li>
@@ -1487,6 +1494,23 @@
     if (window.ResizeObserver) new ResizeObserver(() => measureToc(root)).observe(toc);
   }
   function measureToc(root) { const toc = root && root.querySelector('.toc'); if (!toc) return; root.style.setProperty('--tocH', toc.offsetHeight + 'px'); }
+  // contents strips on the Nursing and Interns views (28.09.2026): static buttons, the same jumps as the teaching views' strip
+  function wireViewToc(panelId) {
+    const root = document.getElementById(panelId), toc = root && root.querySelector(':scope > nav.vtoc');
+    if (!toc) return;
+    toc.addEventListener('click', ev => {
+      const j = ev.target.closest('[data-jump]'); if (!j) return;
+      const k = j.dataset.jump;
+      if (k === 'top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      let el = k === 'chart' ? root.querySelector(':scope > .legend') : k === 'tableview' ? root.querySelector(':scope > details.tableview') : document.getElementById(k);
+      if (!el) return;
+      if (el.tagName === 'DETAILS') el.open = true;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    measureToc(root);
+    if (window.ResizeObserver) new ResizeObserver(() => measureToc(root)).observe(toc);
+  }
+  wireViewToc('panel-nursing'); wireViewToc('panel-interns');
   // ---------------- home site map: Leaflet on Esri's label-free gray canvas (theme-aware; CARTO's basemaps now need an API key); the inline SVG locator stays as the fallback ----------------
   function initSitesMap(d) {
     const el = document.querySelector('#panel-home .map'); if (!el || !window.L) return;
@@ -2286,6 +2310,7 @@
     if (VIEWS[id]) revealToday(id);
     if (id === 'home' && window.SITES_MAP) requestAnimationFrame(() => window.SITES_MAP.refit());
     if (id === 'nursing') { revealToday('chn2'); revealToday('msc'); }
+    if (id === 'nursing' || id === 'interns') measureToc(panelEl(id));
   }
   const fromHash = () => { const h = (location.hash || '').slice(1).toLowerCase(); return TABS.includes(h) ? h : 'home'; };
   const route = () => activate(fromHash());
