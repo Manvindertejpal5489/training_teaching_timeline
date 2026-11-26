@@ -2153,7 +2153,11 @@
   const todayUTC = () => { const d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); };
   const longDate = utc => new Date(utc).toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' });
   const shortDate = utc => new Date(utc).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
-  let CURRENT = parseIso(new URLSearchParams(location.search).get('date')) ?? todayUTC();
+  // 27.11.2026: the page always opens on today's date. Picking a date used to write ?date=… into the address,
+  // so a bookmarked or shared link kept reopening on that old day; a ?date in the address is now ignored and
+  // removed, and the date picker changes only what is on screen.
+  let CURRENT = todayUTC();
+  try { const u0 = new URL(location.href); if (u0.searchParams.has('date')) { u0.searchParams.delete('date'); history.replaceState(null, '', u0); } } catch (e) {}
   const escH = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   const DAY_NOTES = {"cuha":{"2026-11-10":{"short":"Examination duty · Dr Chaitra","text":"Dr Chaitra (SR) is on examination duty 2 – 5 pm — pending 3rd Semester examination of Dr Avinash Vishwakarma (JR, PG July 2024 batch), Notice No. 081 dt 04.11.2026. The chart keeps her PHC Barkheda posting for the day; the notice names no replacement at the centre."},"2026-11-26":{"short":"Dr Akhil · departmental duty only","text":"From today Dr Akhil (SR) is on departmental duty only (told 26.11.2026) — no centre posting or field work. PHC Barkheda in December is left to Dr Chaitra until 05 Dec, then to the roster's Junior Residents (Dr Prakhar / Dr Yash / Dr Sahil); no Senior Resident replacement is named."},"2026-12-05":{"short":"Last working day · Dr Chaitra","text":"Today is Dr Chaitra's (SR) last working day in the department (told 26.11.2026). From 06 Dec no Senior Resident is named for PHC Barkheda; the roster's Junior Residents (Dr Prakhar / Dr Yash / Dr Sahil) take it in order of seniority as per availability."},"2026-12-06":{"short":"Dr Chaitra has left","text":"Dr Chaitra (SR) has left the department (last working day 05 Dec 2026). PHC Barkheda has no Senior Resident named: Dr Prakhar / Dr Yash / Dr Sahil in order of seniority as per availability. Her PG seminar on 14 Dec and SR class on 30 Dec have no substitute named."}}};   // dated notes shown in a view's Current box (09.11.2026)
@@ -2268,7 +2272,6 @@
     box.querySelector('input[type=date]').addEventListener('change', ev => {
       const t = parseIso(ev.target.value); if (t === null) return;
       CURRENT = t;
-      const u = new URL(location.href); u.searchParams.set('date', isoOf(t)); history.replaceState(null, '', u);
       Object.keys(VIEWS).forEach(k => { renderToday(k); markToday(k); });
       markHealthRows(); markPastRows(document.getElementById('panel-nursing'));
       scrollToDate(id);
